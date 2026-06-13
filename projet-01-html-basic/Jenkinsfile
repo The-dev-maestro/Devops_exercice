@@ -4,7 +4,9 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'docker build -t project01:${BUILD_NUMBER} .'
+                dir('projet-01-html-basic') {
+                    sh 'docker build -t project01:${BUILD_NUMBER} .'
+                }
             }
         }
         stage('Test') {
