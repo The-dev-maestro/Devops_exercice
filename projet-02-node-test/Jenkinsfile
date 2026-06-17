@@ -32,9 +32,9 @@ pipeline{
         stage('verify container'){
             steps{
                 sh '''
-                docker run -d --name test-project02 -p 4002:3000 project02:${BUILD_NUMBER}
+                docker run -d --name test-project02 --network devops-exercices_default project02:${BUILD_NUMBER}
                 sleep 5
-                curl -f http://localhost:4002/health || exit 1
+                curl -f http://test-project02:3000/health || exit 1
                 docker stop test-project02
                 docker rm test-project02
                 '''
