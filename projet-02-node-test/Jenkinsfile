@@ -26,7 +26,7 @@ pipeline{
         }
         stage('Build'){
             steps{
-                echo '===== Build de docker image ====='
+                echo '===== Build de docker ====='
                 dir('projet-02-node-test'){
                      sh 'docker build -t project02:${BUILD_NUMBER} .'
                 }  
