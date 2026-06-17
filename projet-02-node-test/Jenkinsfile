@@ -1,0 +1,42 @@
+pipepline{
+    stages{
+        stage('Install'){
+            step {
+                sh 'npm ci'
+            }
+        }
+        stage('Test'){
+            step{
+                echo 'Executions des testes...'
+                sh 'npm test'
+            }
+        }
+        stage('Build'){
+            step{
+                echo '===== Build de l\\image docker ====='
+                dir('projet-02-node-test'){
+                     sh 'docker build -t project02:${BUILD_NUMBER}'
+                }  
+            }
+        }
+        stage('verify container'){
+            step{
+                sh '''
+                docker run -d --name test-project02 -p 4002:3000 project02:${BUILD_NUMBER}
+                sleep 5
+                curl -f http://localhost:4002/health || exit 1
+                docker stop test-project02
+                docker rm test-project02
+                '''
+            }
+        }
+    }
+    post {
+        faillure {
+            echo 'Pipeline ECHOUE - vérifier les logs'
+        }
+        always {
+            'docker rm -f test-project02 || true'
+        }
+    }
+}
