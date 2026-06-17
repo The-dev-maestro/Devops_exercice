@@ -1,26 +1,27 @@
-pipepline{
+pipeline{
     stages{
+        agent any
         stage('Install'){
-            step {
+            steps{
                 sh 'npm ci'
             }
         }
         stage('Test'){
-            step{
+            steps{
                 echo 'Executions des testes...'
                 sh 'npm test'
             }
         }
         stage('Build'){
-            step{
+            steps{
                 echo '===== Build de l\\image docker ====='
                 dir('projet-02-node-test'){
-                     sh 'docker build -t project02:${BUILD_NUMBER}'
+                     sh 'docker build -t project02:${BUILD_NUMBER} .'
                 }  
             }
         }
         stage('verify container'){
-            step{
+            steps{
                 sh '''
                 docker run -d --name test-project02 -p 4002:3000 project02:${BUILD_NUMBER}
                 sleep 5
@@ -32,11 +33,11 @@ pipepline{
         }
     }
     post {
-        faillure {
+        failure {
             echo 'Pipeline ECHOUE - vérifier les logs'
         }
         always {
-            'docker rm -f test-project02 || true'
+           sh 'docker rm -f test-project02 || true'
         }
     }
 }
