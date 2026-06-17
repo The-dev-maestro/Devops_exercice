@@ -3,6 +3,9 @@ pipeline{
     tools{
         nodejs 'node20'
     }
+    triggers {
+    gitlab(triggerOnPush: true)
+}
    
 
     stages{
