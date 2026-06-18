@@ -41,7 +41,7 @@ pipeline{
                 sh 'docker rm -f test-projet03'
             }
             failure{
-                echo 'pipeline failed'
+                echo 'pipeline Failed'
             }
             success{
                 echo 'pipeline succes'
