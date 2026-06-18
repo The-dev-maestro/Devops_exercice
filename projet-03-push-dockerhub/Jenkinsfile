@@ -13,8 +13,8 @@ pipeline{
         stage('Build'){
             steps{
                 dir('projet-03-push-dockerhub'){
-                    sh 'docker build -t ${IMAGE_NAME}:{BUILD_NUMBER} .'
-                    sh 'docker tag ${IMAGE_NAME}:{BUILD_NUMBER} ${IMAGE_NAME}:latest'
+                    sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+                    sh 'docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${IMAGE_NAME}:latest'
                 }
              
             }
@@ -22,7 +22,7 @@ pipeline{
         stage('test'){
             steps{
                 sh '''
-                docker run -d --name test-project03 --network devops-exercices_default ${IMAGE_NAME}:{BUILD_NUMBER}
+                docker run -d --name test-project03 --network devops-exercices_default ${IMAGE_NAME}:${BUILD_NUMBER}
                 sleep 5
                 curl -f http://test-project03:3000/health || exit 1
                 docker stop test-project03 && docker rm test-project03
@@ -42,7 +42,7 @@ pipeline{
     }
          post{
             always{
-                sh 'docker rm -f test-projet03'
+                sh 'docker rm -f test-project03'
             }
             failure{
                 echo 'pipeline Failed'
