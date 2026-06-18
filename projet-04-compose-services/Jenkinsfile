@@ -4,34 +4,41 @@ pipeline {
     stages {
         stage('Build avec Compose') {
             steps {
-                sh 'docker-compose build'
+                dir('projet-04-compose-services') {
+                    sh 'docker-compose build'
+                }
             }
         }
 
         stage('Démarrer les services') {
             steps {
-                sh 'docker-compose up -d'
-                sh 'sleep 5'
+                dir('projet-04-compose-services') {
+                    sh 'docker-compose up -d'
+                    sh 'sleep 5'
+                }
             }
         }
 
         stage('Tests d\'intégration') {
             steps {
-                sh '''
-                    curl -f http://localhost:3000/health || exit 1
-                    echo "Health check OK"
-                    curl -f http://localhost:3000/ || exit 1
-                    curl -f http://localhost:3000/ || exit 1
-                    RESPONSE=$(curl -s http://localhost:3000/)
-                    echo "Response: $RESPONSE"
-                '''
+                dir('projet-04-compose-services') {
+                    sh '''
+                        curl -f http://localhost:3000/health || exit 1
+                        echo "Health check OK"
+                        curl -f http://localhost:3000/ || exit 1
+                        RESPONSE=$(curl -s http://localhost:3000/)
+                        echo "Response: $RESPONSE"
+                    '''
+                }
             }
         }
     }
 
     post {
         always {
-            sh 'docker-compose down --volumes'
+            dir('projet-04-compose-services') {
+                sh 'docker-compose down --volumes'
+            }
         }
     }
 }
