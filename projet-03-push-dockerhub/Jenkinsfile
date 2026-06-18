@@ -1,6 +1,6 @@
 pipeline{
     agent any
-    tool {
+    tools {
         nodejs 'node20'
     }
     triggers{
@@ -36,7 +36,10 @@ pipeline{
             '''
            }
         }
-        post{
+   
+
+    }
+         post{
             always{
                 sh 'docker rm -f test-projet03'
             }
@@ -47,6 +50,4 @@ pipeline{
                 echo 'pipeline succes'
             }
         }
-
-    }
 }
