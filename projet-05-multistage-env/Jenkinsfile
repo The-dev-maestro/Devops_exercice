@@ -6,7 +6,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('084d1a9f-d13f-4311-be4b-f5ecd995c3b3')
         IMAGE_NAME = 'warren042/project05'
-        APP_VERSION = '${BUILD_NUMBER}.0.0'
+        APP_VERSION = "${BUILD_NUMBER}.0.0"
     }
     stages{
         stage('checkout'){
@@ -38,9 +38,9 @@ pipeline {
         stage('Image test'){
             steps{
                 sh '''
-                docker run -d --name test-p05 --network -devops-exercices_default ${IMAGE_NMAE}:${APP_VERSION}
+                docker run -d --name test-p05 --network devops-exercices_default ${IMAGE_NAME}:${APP_VERSION}
                 sleep 2
-                RESPONSE=$(curl --s http://localhost:4005/)
+                RESPONSE=$(curl -s http://test-p05:3000/)
                 echo $RESPONSE | grep -q "${APP_VERSION}" || exit 1
                 echo "Version correcte dans la réponse"
                 docker stop test-p05 && docker rm test-p05
