@@ -16,18 +16,22 @@ pipeline{
         }
         stage('Install dependencies'){
             steps{
-                sh 'npm ci'
+                dir('projet-06-webhook-github'){
+                    sh 'npm ci'
+                }
             }
         }
         stage('Image build and versioning'){
             steps{
-              sh '''
-                docker build \
-                    --build-tag APP_VERSION=${APP_VERSION} \
-                    -t ${IMAGE_NAME}:${APP_VERSION} \
-                    -t ${IMAGE_NAME}:latest \
-                    .
-                '''
+                dir('projet-06-webhook-github'){
+                    sh '''
+                    docker build \
+                        --build-arg APP_VERSION=${APP_VERSION} \
+                        -t ${IMAGE_NAME}:${APP_VERSION} \
+                        -t ${IMAGE_NAME}:latest \
+                        .
+                    '''
+                }
             }
         }
         stage('Image test'){
