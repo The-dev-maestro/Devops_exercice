@@ -1,7 +1,7 @@
 pipeline {
     agent any 
-    tool {
-        nodejs 'nodejs20'
+    tools {
+        nodejs 'node20'
     }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('084d1a9f-d13f-4311-be4b-f5ecd995c3b3')
@@ -23,6 +23,16 @@ pipeline {
         }
         stage('Build docker image and version'){
             steps{
+                dir('projet-05-multistage-env'){
+                          sh '''
+                    docker build \
+                        --build-arg APP_VERSION=${APP_VERSION} \
+                        -t ${IMAGE_NAME}:${APP_VERSION} \
+                        -t ${IMAGE_NAME}:latest \
+                        .
+                        '''
+            }
+                }
                 sh '''
                     docker build \
                         --build-arg APP_VERSION=${APP_VERSION} \
