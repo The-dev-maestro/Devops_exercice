@@ -1,5 +1,8 @@
 pipeline {
     agent any 
+    tool {
+        nodejs 'nodejs20'
+    }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('084d1a9f-d13f-4311-be4b-f5ecd995c3b3')
         IMAGE_NAME = 'warren042/project05'
