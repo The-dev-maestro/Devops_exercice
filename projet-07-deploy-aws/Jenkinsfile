@@ -58,13 +58,13 @@ pipeline{
             steps{
                 sshagent(['aws-ec2-ssh-key']){
                     sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} << ENDSSH
+                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} << 'ENDSSH'
                      docker pull ${IMAGE_NAME}:${APP_VERSION}
-                            docker stop app || true
-                            docker rm app || true
-                            docker run -d --name app -p 80:3000 --restart unless-stopped ${IMAGE_NAME}:${APP_VERSION}
-                            sleep 3
-                            curl -f http://localhost/health
+                     docker stop app || true
+                     docker rm app || true
+                     docker run -d --name app -p 80:3000 --restart unless-stopped ${IMAGE_NAME}:${APP_VERSION}
+                     sleep 3
+                     curl -f http://localhost/health
 ENDSSH
                     """
                 }
