@@ -56,7 +56,7 @@ pipeline{
         }
         stage('Deploy to AWS EC2'){
             steps{
-                sshagent(credentials['aws-ec2-ssh-key']){
+                sshagent(['aws-ec2-ssh-key']){
                     sh """
                     ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} << ENDSSH
                      docker pull ${IMAGE_NAME}:${APP_VERSION}
@@ -72,11 +72,11 @@ ENDSSH
         }
         stage('Verify Deployment') {
             steps {
-                sh '''
+                sh """
                     sleep 5
                     curl -f http://${EC2_HOST}/health || exit 1
                     echo "Déploiement vérifié avec succès!"
-                '''
+                """
             }
         }
     }
