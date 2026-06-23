@@ -40,7 +40,7 @@ pipeline{
                 sh '''
                 docker run -d --name test-p07 --network devops-exercices_default ${IMAGE_NAME}:${APP_VERSION}
                 sleep 2
-                curl -s http://test-p07/3000/
+                curl -s http://test-p07:3000/
                 docker stop test-p07 && docker rm test-p07
                 '''
             }
