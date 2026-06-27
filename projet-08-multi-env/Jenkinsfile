@@ -93,7 +93,7 @@ ENDSSH
                 docker-compose pull
                 docker-compose up -d
                 sleep 2
-                curl -f http://localhost:3000/health
+                curl -f http://localhost/health
 ENDSSH
                 }
                 """
