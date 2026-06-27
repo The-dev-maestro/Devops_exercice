@@ -43,7 +43,7 @@ pipeline{
          stage('Push to Docker hub'){
             steps{
                 sh'''
-                echo $DOCKERHHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIAL_USR --password-stdin
+                echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIAL_USR --password-stdin
                 docker push ${IMAGE_NAME}:${IMAGE_TAG}
                 docker push ${IMAGE_NAME}:${APP_VERSION}
                 '''
@@ -55,7 +55,7 @@ pipeline{
                 sshagent(credentials['aws-ec2-ssh-key']){
                 scp ~/projet-08-multi-env/docker-compose-staging.yml ec2-user@${STAGING_HOST}:~/staging/docker-compose.yml
                 ssh ec2-user@${STAGING_HOST} <<ENDSSH
-                export IMAGE_NAME=${IAMGE_NAME}
+                export IMAGE_NAME=${IMAGE_NAME}
                 export TAG=${IMAGE_TAG}
                 docker-compose pull
                 docker-compose up -d
