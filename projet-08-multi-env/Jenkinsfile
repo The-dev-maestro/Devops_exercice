@@ -12,8 +12,8 @@ pipeline{
     }
     stages{
         stage('Build et Tag'){
-            dir('projet-08-multi-env'){
                 steps{
+                dir('projet-08-multi-env'){
                    script{
                      env.GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     env.IMAGE_TAG = "${APP_VERSION}-${GIT_COMMIT}"
@@ -90,7 +90,7 @@ ENDSSH
          }
     }
     post{
-        alway{
+        always{
             sh 'docker rm -f test-p08 || true'
             sh'docker logout'
         }
