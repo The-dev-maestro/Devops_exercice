@@ -55,7 +55,7 @@ pipeline{
                 sshagent(credentials: ['aws-ec2-ssh-key']){
                 sh """
                 echo "📦 Copie du fichier docker-compose STAGING vers le serveur..."
-                scp /Users/mac/devops-exercices/projet-08-multi-env/projet-08-multi-env/docker-compose-staging.yml ec2-user@${STAGING_HOST}:~/staging/docker-compose.yml
+                scp /Users/mac/devops-exercices/projet-08-multi-env/docker-compose-staging.yml ec2-user@${STAGING_HOST}:~/staging/docker-compose.yml
                 echo "🚀 Déploiement STAGING sur le serveur..."
                 ssh ec2-user@${STAGING_HOST} <<ENDSSH
                 export IMAGE_NAME=${IMAGE_NAME}
@@ -80,7 +80,7 @@ ENDSSH
                 sshagent(credentials: ['aws-ec2-ssh-key']){
                      sh """
                 echo "📦 Copie du fichier docker-compose PROD vers le serveur..."
-                scp /Users/mac/devops-exercices/projet-08-multi-env/projet-08-multi-env/docker-compose-production.yml ec2-user@${PRODUCTION_HOST}:~/production/docker-compose-production.yml
+                scp /Users/mac/devops-exercices/projet-08-multi-env/docker-compose-production.yml ec2-user@${PRODUCTION_HOST}:~/production/docker-compose-production.yml
                 echo "🚀 Déploiement PROD sur le serveur..."
                 ssh ec2-user@${PRODUCTION_HOST} <<ENDSSH
                 export IMAGE_NAME=${IMAGE_NAME}
