@@ -67,7 +67,6 @@ pipeline{
                 docker-compose up -d
                 sleep 2
                 curl -f http://localhost:3000/health
-                docker-compose down
 ENDSSH
                 """
              }
