@@ -51,8 +51,9 @@ pipeline{
          }
          stage('Deploy staging'){
             steps{
-                sh """
+               
                 sshagent(credentials: ['aws-ec2-ssh-key']){
+                sh """
                 echo "📦 Copie du fichier docker-compose STAGING vers le serveur..."
                 scp ~/projet-08-multi-env/docker-compose-staging.yml ec2-user@${STAGING_HOST}:~/staging/docker-compose.yml
                 echo "🚀 Déploiement STAGING sur le serveur..."
@@ -64,8 +65,8 @@ pipeline{
                 sleep 2
                 curl -f http://localhost:3000/health
 ENDSSH
-                }
                 """
+             }
             }
          }
          stage('Approval production'){
@@ -75,8 +76,9 @@ ENDSSH
          }
          stage('Deploy to production'){
             steps{
-                 sh """
+                
                 sshagent(credentials: ['aws-ec2-ssh-key']){
+                     sh """
                 echo "📦 Copie du fichier docker-compose PROD vers le serveur..."
                 scp ~/projet-08-multi-env/docker-compose-production.yml ec2-user@${PRODUCTION_HOST}:~/production/docker-compose-production.yml
                 echo "🚀 Déploiement PROD sur le serveur..."
