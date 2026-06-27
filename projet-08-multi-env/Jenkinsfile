@@ -95,7 +95,6 @@ ENDSSH
                 sleep 2
                 curl -f http://localhost/health
 ENDSSH
-                }
                 """
             }
          }
