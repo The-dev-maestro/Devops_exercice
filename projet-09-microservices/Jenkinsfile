@@ -86,7 +86,7 @@ stage('Integration Test') {
                     sh"""
                     ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} 'mkdir -p ~/projet09'
                     scp -o StrictHostKeyChecking=no projet-09-microservices/docker-compose.yml ec2-user@${EC2_HOST}:~/projet09/docker-compose.yml
-                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} 
+                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} <<'ENDSSH'
                     cd ~/projet09
                     export REGISTRY=${REGISTRY}
                     export TAG=${BUILD_NUMBER}
