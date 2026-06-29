@@ -82,7 +82,7 @@ stage('Integration Test') {
         }
         stage('Deploy to AWS'){
             steps{
-                sshagent(credentials:['aws-ec2-key']){
+                sshagent(credentials:['aws-ec2-ssh-key']){
                     sh"""
                     ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} 'mkdir -p ~/projet09'
                     scp -o StrictHostKeyChecking=no projet-09-microservices/docker-compose.yml ec2-user@${EC2_HOST}:~/projet09/docker-compose.yml
