@@ -4,6 +4,7 @@ const app = express();
 
 function proxyTo(service, path) {
     return (req, res) => {
+        // Attention: ici tes services user et product écoutent sur le port 3000
         http.get(`http://${service}:3000${path}`, (proxyRes) => {
             let data = '';
             proxyRes.on('data', c => data += c);
@@ -16,4 +17,5 @@ app.get('/users', proxyTo('user-service', '/users'));
 app.get('/products', proxyTo('product-service', '/products'));
 app.get('/health', (req, res) => res.json({ service: 'gateway', status: 'up' }));
 
-app.listen(5001, () => console.log('Gateway on :5001'));
+// 👇 AJOUTE '0.0.0.0' pour écouter sur toutes les interfaces du conteneur
+app.listen(5001, '0.0.0.0', () => console.log('Gateway on :5001'));
