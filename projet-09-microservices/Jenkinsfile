@@ -51,20 +51,20 @@ pipeline{
             docker port projet-09-microservices-gateway-1
             
             echo "=== Testing Connection ==="
-            curl -v http://localhost:8081/health || echo "Connection failed"
+            curl -v  curl -f http://gateway:5001/health || echo "Connection failed"
             '''
         }
     }
 }
-        stage('Integration Test') {
+stage('Integration Test') {
     steps {
         dir('projet-09-microservices') {
             sh '''
                 docker-compose up -d
                 sleep 5
-                curl -f http://localhost:8081/health
-                curl -f http://localhost:3001/users
-                curl -f http://localhost:3002/products
+                curl -f http://gateway:5001/health
+                curl -f http://user-service:3000/users
+                curl -f http://product-service:3000/products
             '''
         }
     }

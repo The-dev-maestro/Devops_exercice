@@ -4,6 +4,8 @@ services:
     build: ./api-gateway
     ports:
       - "8081:5001"
+    networks:
+      - devops-exercices_default
     depends_on:
       - user-service
       - product-service
@@ -13,9 +15,17 @@ services:
     build: ./user-service
     ports:
       - "3001:3000"
+    networks:
+      - devops-exercices_default
 
   product-service:
     image: ${REGISTRY:-warren042}/product-service:${BUILD_NUMBER}
     build: ./product-service
     ports:
       - "3002:3000"
+    networks:
+      - devops-exercices_default
+
+networks:
+  devops-exercices_default:
+    external: true
