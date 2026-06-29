@@ -34,21 +34,19 @@ pipeline{
                 }
             }
         }
-        stage('Integration Test'){
-            steps{
-                dir('projet-09-microservices'){
-                sh'''
-                  docker-compose up -d
-                    sleep 5
-                    curl -f http://localhost:8080/health || exit 1
-                    curl -f http://localhost:3000/users || exit 1
-                    curl -f http://localhost:3000/products || exit 1
-                    echo "Tous les services répondent correctement"
-                    docker-compose down
-                '''
-            }
+        stage('Integration Test') {
+    steps {
+        dir('projet-09-microservices') {
+            sh '''
+                docker-compose up -d
+                sleep 5
+                curl -f http://gateway:3000/health
+                curl -f http://user-service:3000/users
+                curl -f http://product-service:3000/products
+            '''
         }
     }
+}
         stage('Push All to dockerhub'){
            steps{
             sh'''
@@ -72,7 +70,7 @@ pipeline{
                     docker-compose pull
                     docker-compose up -d
                     sleep 5
-                    curl http://localhost:8080/health
+                    curl http://gateway:3000/health
 ENDSSH
                     """
                 }
