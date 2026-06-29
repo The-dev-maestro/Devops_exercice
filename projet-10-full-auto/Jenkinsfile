@@ -68,8 +68,8 @@ pipeline{
         stage('Deploy tu Production'){
             steps{
                 sshagent(['aws-ec2-ssh-key']){
-                     sh"""
-            ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} << 'ENDSSH'
+                     sh """
+            ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} <<'ENDSSH'
             CURRENT=$(docker ps --format '{{.Image}}' --filter "name=app" | head -n 1)
             echo "${CURRENT}" > /tmp/previous_image.txt
 
