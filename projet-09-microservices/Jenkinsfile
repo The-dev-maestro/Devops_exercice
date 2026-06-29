@@ -34,20 +34,7 @@ pipeline{
                 }
             }
         }
-        stage('Integration Test') {
-    steps {
-        dir('projet-09-microservices') {
-            sh '''
-                docker-compose up -d
-                sleep 5
-                curl -f http://localhost:8081/health
-                curl -f http://localhost:3001/users
-                curl -f http://localhost:3002/products
-            '''
-        }
-    }
-}
-stage('Integration Test - Debug'){
+        stage('Integration Test - Debug'){
     steps{
         dir('projet-09-microservices'){
             sh '''
@@ -69,6 +56,20 @@ stage('Integration Test - Debug'){
         }
     }
 }
+        stage('Integration Test') {
+    steps {
+        dir('projet-09-microservices') {
+            sh '''
+                docker-compose up -d
+                sleep 5
+                curl -f http://localhost:8081/health
+                curl -f http://localhost:3001/users
+                curl -f http://localhost:3002/products
+            '''
+        }
+    }
+}
+
         stage('Push All to dockerhub'){
            steps{
             sh'''
