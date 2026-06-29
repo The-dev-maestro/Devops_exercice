@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   gateway:
-    image: ${REGISTRY}/gateway:${TAG}
+    image: ${REGISTRY}/gateway:${BUILD_NUMBER}
     build: ./api-gateway
     ports:
     - "8080:8080"
@@ -11,13 +11,13 @@ services:
     - product-service
 
   user-service:
-    image: ${REGISTRY}/user-service:${TAG}
+    image: ${REGISTRY}/user-service:${BUILD_NUMBER}
     build: ./user-service
     ports:
     - "3000"
 
   product-service:
-    image: ${REGISTRY}/product-service:${TAG}
+    image: ${REGISTRY}/product-service:${BUILD_NUMBER}
     build: ./product-service
     ports:
     - "3000"
