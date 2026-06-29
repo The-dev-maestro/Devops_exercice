@@ -108,7 +108,7 @@ ENDSSH
             steps {
                 sh '''
                    sleep 5
-                    RESPONSE=$(curl -s http://${EC2_HOST}:3000/)
+                    RESPONSE=$(curl -s http://${EC2_HOST}/)
                     echo "Production response: $RESPONSE"
                     echo $RESPONSE | grep -q "${IMAGE_TAG}" || exit 1
                     echo "Version correcte en production!"
