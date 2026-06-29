@@ -40,9 +40,9 @@ pipeline{
             sh '''
                 docker-compose up -d
                 sleep 5
-                curl -f http://gateway:3000/health
-                curl -f http://user-service:3000/users
-                curl -f http://product-service:3000/products
+                curl -f http://localhost:8081/health
+                curl -f http://localhost:3001/users
+                curl -f http://localhost:3002/products
             '''
         }
     }
@@ -70,17 +70,22 @@ pipeline{
                     docker-compose pull
                     docker-compose up -d
                     sleep 5
-                    curl http://gateway:3000/health
+                    curl http://localhost:8081/health
 ENDSSH
                     """
                 }
             }
         }
     }
-     post {
-        always {
+    post{
+    always{
+        dir('projet-09-microservices'){
             sh 'docker-compose down || true'
-            sh 'docker logout || true'
         }
+        sh 'docker logout || true'
     }
+    failure{
+        echo 'Pipeline failed - check integration tests'
+    }
+}
 }
