@@ -116,24 +116,63 @@ ENDSSH
             }
         }
     }
-    post {
+       post {
         success {
-            sh '''
-                curl -X POST ${SLACK_WEBHOOK} \
-                    -H "Content-Type: application/json" \
-                    -d '{"text": "Deploiement reussi! Version: '"${IMAGE_TAG}"' Auteur: '"${GIT_AUTHOR}"'"}' || true
-            '''
+            script {
+                // On calcule la durée du build
+                def duration = currentBuild.durationString.replace(" and counting", "")
+                
+                // On prépare le message avec un bloc de code Slack (```)
+                def message = """
+                ✅ *Déploiement Réussi!*
+                
+                *Projet:* ${JOB_NAME} #${BUILD_NUMBER}
+                *Durée:* ${duration}
+                *Version:* ${IMAGE_NAME}:${IMAGE_TAG}
+                *Auteur:* ${GIT_AUTHOR}
+                *Commit:* ${GIT_MESSAGE} (${GIT_COMMIT_SHORT})
+                *Lien Jenkins:* ${BUILD_URL}
+                *Application en production:* http://${EC2_HOST}
+                """.stripIndent()
+                
+                // Groovy transforme le texte en JSON valide (gère les guillemets)
+                def payload = groovy.json.JsonOutput.toJson([text: message])
+                writeFile file: 'slack_success.json', text: payload
+                sh "curl -X POST ${SLACK_WEBHOOK} -H 'Content-Type: application/json' -d @slack_success.json || true"
+            }
         }
         failure {
-            sh '''
-                curl -X POST ${SLACK_WEBHOOK} \
-                    -H "Content-Type: application/json" \
-                    -d '{"text": "ECHEC deploiement! Build: #'"${BUILD_NUMBER}"' Verifier: '"${BUILD_URL}"'"}' || true
-            '''
+            script {
+                def duration = currentBuild.durationString.replace(" and counting", "")
+                
+                // On récupère les 40 dernières lignes des logs Jenkins
+                // /!\ Si Jenkins est sécurisé, ce curl pourrait retourner une page de login HTML. 
+                // Dans ce cas, il faudra utiliser le plugin Slack officiel de Jenkins.
+                def logs = sh(script: "curl -s '${BUILD_URL}consoleText' | tail -n 40", returnStdout: true).trim()
+                
+                def message = """
+                ❌ *Échec du Pipeline!*
+                
+                *Projet:* ${JOB_NAME} #${BUILD_NUMBER}
+                *Durée:* ${duration}
+                *Version ciblée:* ${IMAGE_NAME}:${IMAGE_TAG}
+                *Auteur:* ${GIT_AUTHOR}
+                *Commit:* ${GIT_MESSAGE} (${GIT_COMMIT_SHORT})
+                *Vérifier les logs:* ${BUILD_URL}console
+                
+                *Extrait des logs (40 dernières lignes):*
+                ```
+                ${logs}
+                ```
+                """.stripIndent()
+                
+                def payload = groovy.json.JsonOutput.toJson([text: message])
+                writeFile file: 'slack_failure.json', text: payload
+                sh "curl -X POST ${SLACK_WEBHOOK} -H 'Content-Type: application/json' -d @slack_failure.json || true"
+            }
         }
         always {
             sh 'docker rm -f test-p10 || true'
             sh 'docker logout || true'
         }
     }
-}
