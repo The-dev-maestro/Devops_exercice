@@ -3,7 +3,7 @@ version: '3.8'
 services:
   gateway:
     build: ./api-gateway
-    port:
+    ports:
     - "8080:8080"
     depends-on:
     - user-service
@@ -11,10 +11,10 @@ services:
 
   user-service:
     build: ./user-service
-    port:
+    ports:
     - "3000"
 
   product-service:
     build: ./product-service
-    port:
+    ports:
     - "3000"
