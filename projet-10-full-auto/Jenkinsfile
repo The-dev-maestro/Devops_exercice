@@ -1,26 +1,26 @@
-pipeline{
-    agnet any
-    evironment{
+pipeline {
+    agent any
+    environment {
         EC2_HOST = 'ec2-13-48-27-172.eu-north-1.compute.amazonaws.com'
         IMAGE_NAME = 'warren042/project10'
         DOCKERHUB_CREDENTIALS = credentials('084d1a9f-d13f-4311-be4b-f5ecd995c3b3')
         SLACK_WEBHOOK = credentials('slack-webhook-url')
     }
-    stages{
-        stage('preparation'){
-            steps{
-                script{
+    stages {
+        stage('preparation') {
+            steps {
+                script {
                     env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     env.GIT_AUTHOR = sh(script: 'git log -1 --format=%an', returnStdout: true).trim()
                     env.GIT_MESSAGE = sh(script: 'git log -1 --format=%s', returnStdout: true).trim()
                     env.IMAGE_TAG = "${BUILD_NUMBER}-${env.GIT_COMMIT_SHORT}"
                 }
-                ech "Build ${IMAGE_TAG} par ${env.GIT_AUTHOR}: ${env.GIT_MESSAGE}"
+                echo "Build ${IMAGE_TAG} par ${env.GIT_AUTHOR}: ${env.GIT_MESSAGE}"
             }
         }
-        stage('Build Docker Image'){
-            steps{
-                dir('projet-10-full-auto'){
+        stage('Build Docker Image') {
+            steps {
+                dir('projet-10-full-auto') {
                     sh '''
                     docker build \
                         --build-arg APP_VERSION=${IMAGE_TAG} \
@@ -31,10 +31,10 @@ pipeline{
                 }
             }
         }
-        stage('Security Scan'){
-            steps{
-                dir('projet-10-full-auto'){
-                    sh'''
+        stage('Security Scan') {
+            steps {
+                dir('projet-10-full-auto') {
+                    sh '''
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
                         aquasec/trivy:latest image --exit-code 1 --severity HIGH,CRITICAL \
                          ${IMAGE_NAME}:${IMAGE_TAG} || echo "Vulnérabilités détectées (non-bloquant)"
@@ -42,9 +42,9 @@ pipeline{
                 }
             }
         }
-           stage('Test Image') {
+        stage('Test Image') {
             steps {
-                dir('projet-10-full-auto'){
+                dir('projet-10-full-auto') {
                     sh '''
                         docker run -d --name test-p10 --network devops-exercices_default ${IMAGE_NAME}:${IMAGE_TAG}
                         sleep 3
@@ -56,7 +56,7 @@ pipeline{
                 }
             }
         }
-            stage('Push to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 sh '''
                     echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
@@ -65,25 +65,25 @@ pipeline{
                 '''
             }
         }
-               stage('Deploy to Production') {
+        stage('Deploy to Production') {
             steps {
                 sshagent(credentials: ['aws-ec2-ssh-key']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ec2-user@${EC2_HOST} << 'ENDSSH'
-                            CURRENT=$(docker ps --format '{{.Image}}' --filter name=app | head -1)
-                            echo "$CURRENT" > /tmp/previous-version.txt
+                            CURRENT=\$(docker ps --format '{{.Image}}' --filter name=app | head -1)
+                            echo "\$CURRENT" > /tmp/previous-version.txt
 
                             export IMAGE_NAME=${IMAGE_NAME}
                             export TAG=${IMAGE_TAG}
-                            docker pull ${IMAGE_NAME}:${TAG}
+                            docker pull \${IMAGE_NAME}:\${TAG}
                             docker stop app || true
                             docker rm app || true
                             docker run -d --name app \\
                                 -p 80:3000 \\
                                 -e NODE_ENV=production \\
-                                -e APP_VERSION=${TAG} \\
+                                -e APP_VERSION=\${TAG} \\
                                 --restart unless-stopped \\
-                                ${IMAGE_NAME}:${TAG}
+                                \${IMAGE_NAME}:\${TAG}
 
                             sleep 5
                             for i in 1 2 3 4 5; do
@@ -92,8 +92,8 @@ pipeline{
                                 else
                                     echo "Health check \$i/5 ECHEC - ROLLBACK"
                                     docker stop app && docker rm app
-                                    PREV=$(cat /tmp/previous-version.txt)
-                                    docker run -d --name app -p 80:3000 --restart unless-stopped $PREV
+                                    PREV=\$(cat /tmp/previous-version.txt)
+                                    docker run -d --name app -p 80:3000 --restart unless-stopped \$PREV
                                     exit 1
                                 fi
                                 sleep 2
@@ -104,9 +104,9 @@ ENDSSH
                 }
             }
         }
-         stage('Smoke test Production'){
-            steps{
-                sh'''
+        stage('Smoke test Production') {
+            steps {
+                sh '''
                    sleep 5
                     RESPONSE=$(curl -s http://${EC2_HOST}/)
                     echo "Production response: $RESPONSE"
@@ -114,9 +114,9 @@ ENDSSH
                     echo "Version correcte en production!"
                 '''
             }
-         }
-     }
-      post {
+        }
+    }
+    post {
         success {
             sh '''
                 curl -X POST ${SLACK_WEBHOOK} \
@@ -137,4 +137,3 @@ ENDSSH
         }
     }
 }
-    
