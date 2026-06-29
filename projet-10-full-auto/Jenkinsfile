@@ -116,13 +116,10 @@ ENDSSH
             }
         }
     }
-       post {
+          post {
         success {
             script {
-                // On calcule la durée du build
                 def duration = currentBuild.durationString.replace(" and counting", "")
-                
-                // On prépare le message avec un bloc de code Slack (```)
                 def message = """
                 ✅ *Déploiement Réussi!*
                 
@@ -135,7 +132,6 @@ ENDSSH
                 *Application en production:* http://${EC2_HOST}
                 """.stripIndent()
                 
-                // Groovy transforme le texte en JSON valide (gère les guillemets)
                 def payload = groovy.json.JsonOutput.toJson([text: message])
                 writeFile file: 'slack_success.json', text: payload
                 sh "curl -X POST ${SLACK_WEBHOOK} -H 'Content-Type: application/json' -d @slack_success.json || true"
@@ -145,10 +141,8 @@ ENDSSH
             script {
                 def duration = currentBuild.durationString.replace(" and counting", "")
                 
-                // On récupère les 40 dernières lignes des logs Jenkins
-                // /!\ Si Jenkins est sécurisé, ce curl pourrait retourner une page de login HTML. 
-                // Dans ce cas, il faudra utiliser le plugin Slack officiel de Jenkins.
-                def logs = sh(script: "curl -s '${BUILD_URL}consoleText' | tail -n 40", returnStdout: true).trim()
+                // Récupération des logs directement via l'API Jenkins (50 dernières lignes)
+                def logs = currentBuild.rawBuild.getLog(50).join('\n')
                 
                 def message = """
                 ❌ *Échec du Pipeline!*
@@ -160,7 +154,7 @@ ENDSSH
                 *Commit:* ${GIT_MESSAGE} (${GIT_COMMIT_SHORT})
                 *Vérifier les logs:* ${BUILD_URL}console
                 
-                *Extrait des logs (40 dernières lignes):*
+                *Extrait des logs:*
                 ```
                 ${logs}
                 ```
@@ -175,5 +169,5 @@ ENDSSH
             sh 'docker rm -f test-p10 || true'
             sh 'docker logout || true'
         }
+          }
     }
-}
