@@ -1,0 +1,78 @@
+pipeline{
+    agent any
+    tools {
+        nodejs "node20"
+    }
+    environment {
+        DOCKERHUB_CREDNTIALS = credentials('084d1a9f-d13f-4311-be4b-f5ecd995c3b3')
+        REGISTRY = 'warren042'
+        EC2_HOST = 'ec2-13-48-27-172.eu-north-1.compute.amazonaws.com'
+
+    }
+    stages{
+        stage('Build all services'){
+            parallel{
+             dir('projet-09-microservices'){
+                   steps{
+                    sh'docker build -t ${REGISTRY}/api-gateway:${BUILD_NUMBER} ./api-geteway'
+                }
+                steps{
+                    sh'docker build -t ${REGISTRY}/product-service:${BUILD_NUMBER} ./product-service'
+                }
+                steps{
+                    sh'docker build -t ${REGISTRY}/user-service:${BUILD_NUMBER} ./user-service'
+                }
+             }
+            }
+        }
+        stage('Integration Test'){
+            steps{
+                dir('projet-09-microservices'){
+                sh'''
+                  docker-compose up -d
+                    sleep 5
+                    curl -f http://localhost:8080/health || exit 1
+                    curl -f http://localhost:8080/users || exit 1
+                    curl -f http://localhost:8080/products || exit 1
+                    echo "Tous les services répondent correctement"
+                    docker-compose down
+                '''
+            }
+        }
+    }
+        stage('Push All to dockerhub'){
+           steps{
+            sh'''
+            echo $DOCKERHUB_CREDENTIIALS_PSW | docker login -u $DOCKERHUB_CREDDENTIALS_USR --password-stdin
+            docker push ${REGISTRY}/api-gateway:${BUILD_NUMBER}
+            docker push ${REGISTRY}/product-service:${BUILD_NUMBER}
+            docker push ${REGISTRY}/user-service:${BUILD_NUMBER}
+            '''
+           }
+        }
+        stage('Deploy to AWS'){
+            steps{
+                sshagent(credentials:['aws-ec2-key']){
+                    sh'''
+                    ssh ec2-user@${EC2_HOST}'mkdir -p ~/projet09'
+                    scp projet-09-microservices/docker-compose.yml ec2-user@${EC2_HOST}:~/projet09/docker-compose.yml
+                    ssh ec2-user@${EC2_HOST} <<ENDSSH
+                    cd ~/project09
+                    export REGISTRY=${REGISTRY}
+                    exxport TAG=${BUILD_NUMBER}
+                    docker-compose pull
+                    docker-compose up -d
+                    sleep 5
+                    curl http://localhost:8080/health
+ENDSSH
+                    '''
+                }
+            }
+        }
+    }
+     post {
+        always {
+            sh 'docker logout || true'
+        }
+    }
+}
