@@ -1,0 +1,38 @@
+name: Projet 02 - Build et Tests
+
+on: 
+  push: 
+    paths: 
+      - 'projet-02-node-test/**'
+      - '.github/workflows/projet02.yml'
+  workflow_dispatch:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: projet-02-node-test
+        run: npm ci
+
+      - name: Run tests
+        working-directory: projet-02-node-test
+        run: npm test
+
+      - name: Buid image
+        working-directory: projet-02-node-test
+        run: docker build -t projet02:${{github.sha}} .
+
+      - name: Verify container
+        working-directory: projet-02-node-test
+        run: |
+          docker run -d --name test-p02 -p 4002:3000 projet02:${{github.sha}}
+          sleep 3
+          curl -f http://localhost:4002/health || exit 1
+          docker rm -f test-p02
