@@ -1,41 +1,70 @@
-name: PROJET 03 - push to dockerhub
+name: Projet 03 - Push Docker Hub
 
-on: 
-  push: 
-    paths: 
-      - 'projet-03-push-dockerhub'
+on:
+  push:
+    paths:
+      - 'projet-03-push-dockerhub/**'
       - '.github/workflows/projet03.yml'
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-  build-test-push:
+  # JOB 1 : BUILD
+  build:
     runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: ${{secrets.DOCKERHUB_USERNAME}}/projet03
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Image
-        working-directory: projet-03-push-dockerhub
-        run: docker  build -t $IMAGE_NAME:${{github.sha}} .
-
-      - name: Test container
+      - uses: actions/checkout@v6
+      
+      - name: Build image
         working-directory: projet-03-push-dockerhub
         run: |
-          docker run -d --name test-pp03 -p 4003:3000 $IMAGE_NAME:${{github.sha}}
-          sleep 2
-          curl http://localhost:4003/health || exit 1
-          docker rm -f test-p03
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/projet03
+          TAG=${{ github.sha }}
+          docker build -t $IMAGE_NAME:$TAG .
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Login in Docker Hub
-        uses: docker/login-action@v3
+  # JOB 2 : TEST (dépend de build)
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Rebuild for testing
+        working-directory: projet-03-push-dockerhub
+        run: |
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/projet03
+          docker build -t $IMAGE_NAME:${{ github.sha }} .
+      
+      - name: Start container
+        run: |
+          docker run -d --name test-p03 -p 4003:3000 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/projet03:${{ github.sha }}
+      
+      - name: Health check
+        run: sleep 3 && curl -f http://localhost:4003/health || exit 1
+      # ✅ Pas besoin de cleanup : la VM est détruite après ce job
+
+  # JOB 3 : PUSH (dépend de test)
+  push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
         with:
-          username: ${{secrets.DOCKERHUB_USERNAME}}
-          password: ${{secrets.DOCKERHUB_TOKEN}}
-
-      - name: Push to dockerhub
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Build and Push
         working-directory: projet-03-push-dockerhub
         run: |
-          docker tag $IMAGE_NAME:${{github.sha}} $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:${{github.sha}}
-          docker push $IMAGE_NAME:latest 
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/projet03
+          TAG=${{ github.sha }}
+          docker build -t $IMAGE_NAME:$TAG .
+          docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$TAG
+          docker push $IMAGE_NAME:latest
